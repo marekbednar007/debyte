@@ -9,8 +9,7 @@ from langchain_openai import ChatOpenAI
 # You can also define custom tasks in tasks.py
 class CustomAgents:
     def __init__(self):
-        self.OpenAIGPT35 = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.7)
-        self.OpenAIGPT4 = ChatOpenAI(model_name="gpt-4", temperature=0.7)
+        self.OpenAIGPTO4 = ChatOpenAI(model_name="gpt-4o", temperature=0.7)
         self.Ollama = Ollama(model="openhermes")
 
     def agent_1_name(self):
@@ -21,7 +20,7 @@ class CustomAgents:
             # tools=[tool_1, tool_2],
             allow_delegation=False,
             verbose=True,
-            llm=self.OpenAIGPT35,
+            llm=self.OpenAIGPTO4,
         )
 
     def agent_2_name(self):
@@ -32,5 +31,5 @@ class CustomAgents:
             # tools=[tool_1, tool_2],
             allow_delegation=False,
             verbose=True,
-            llm=self.OpenAIGPT35,
+            llm=self.OpenAIGPTO4,
         )

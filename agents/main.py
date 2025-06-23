@@ -15,7 +15,7 @@ from langchain.tools import DuckDuckGoSearchRun
 search_tool = DuckDuckGoSearchRun()
 
 os.environ["OPENAI_API_KEY"] = config("OPENAI_API_KEY")
-os.environ["OPENAI_ORGANIZATION"] = config("OPENAI_ORGANIZATION_ID")
+os.environ["ANTHROPIC_API_KEY"] = config("ANTHROPIC_API_KEY")
 
 # This is the main class that you will use to define your custom crew.
 # You can define as many agents and tasks as you want in agents.py and tasks.py
