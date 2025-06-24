@@ -1,7 +1,8 @@
 # To know more about the Task class, visit: https://docs.crewai.com/concepts/tasks
 from crewai import Task, Agent
 from textwrap import dedent
-from typing import Dict
+from typing import Dict, List
+import json
 import json
 
 A4_LIMIT = "(<2100 words)"
@@ -81,4 +82,59 @@ class DebateTasks:
             """,
             expected_output="A thoughtful, evidence-based response to the question",
             agent=responder,
+        )
+    
+    def strategy_revision_task(self, agent: Agent, embodiment_insights: str, original_strategy: str) -> Task:
+        return Task(
+            description=f"""
+            Based on your understanding of other perspectives, revise your original strategy.
+            
+            Your embodiment insights: {embodiment_insights}
+            
+            Your original strategy: {original_strategy}
+            
+            Your task:
+            1. Review your original strategy critically
+            2. Identify any points where other perspectives have valid concerns
+            3. Strengthen weak arguments with additional research if needed
+            4. Modify or abandon positions if you've found better alternatives
+            5. Prepare your strongest possible case for the debate phase
+            
+            If you've changed your position significantly, explain why.
+            If you're sticking with your original position, explain why other perspectives haven't swayed you.
+            
+            Context: {self.memory_manager.get_context_for_agent(agent.role)}
+            """,
+            expected_output="A refined strategy (max 1500 words) that incorporates lessons learned from other perspectives.",
+            agent=agent,
+        )
+    
+    def voting_task(self, agent: Agent, debate_results: List[Dict], all_agent_names: List[str]) -> Task:
+        return Task(
+            description=f"""
+            After the complete debate, cast your vote for the best overall approach.
+            
+            Complete debate history: {debate_results}
+            
+            Available agents to vote for: {all_agent_names}
+            
+            Your task:
+            1. Review all strategies and debate exchanges
+            2. Identify which approach has the strongest overall case
+            3. Consider which agent presented the most compelling evidence
+            4. Be willing to vote for another agent if their approach is superior
+            5. Explain your reasoning clearly
+            
+            IMPORTANT: 
+            - You can vote for yourself if you genuinely believe your approach is best
+            - You can vote for another agent if their arguments convinced you
+            - Be intellectually honest - the goal is finding the best solution, not winning
+            
+            Format your response as:
+            "I vote for [AGENT NAME] because [detailed reasoning]"
+            
+            Context: {self.memory_manager.get_context_for_agent(agent.role)}
+            """,
+            expected_output="A clear vote with detailed reasoning for why that approach is best.",
+            agent=agent,
         )

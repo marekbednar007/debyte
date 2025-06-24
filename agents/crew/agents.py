@@ -17,9 +17,12 @@ COMMON_RULES = (
 
 class DebateAgents:
     def __init__(self, memory_manager: 'SharedMemoryManager'):
-        self.llm_low_temp = ChatOpenAI(model=GPT4o, temperature=0.3)
-        self.llm_med_temp = ChatOpenAI(model=GPT4o, temperature=0.4) 
-        self.llm_high_temp = ChatOpenAI(model=GPT4o, temperature=0.7)
+        # Specific temperature LLMs for each agent type
+        self.llm_temp_03 = ChatOpenAI(model=GPT4o, temperature=0.3)
+        self.llm_temp_04 = ChatOpenAI(model=GPT4o, temperature=0.4)
+        self.llm_temp_05 = ChatOpenAI(model=GPT4o, temperature=0.5)
+        self.llm_temp_06 = ChatOpenAI(model=GPT4o, temperature=0.6)
+        self.llm_temp_07 = ChatOpenAI(model=GPT4o, temperature=0.7)
         self.memory_manager = memory_manager
 
     def first_principles_physicist(self) -> Agent:
@@ -45,7 +48,7 @@ class DebateAgents:
             """),
             allow_delegation=False,
             verbose=True,
-            llm=self.llm_low_temp,
+            llm=self.llm_temp_04,  # Temperature 0.4 for methodical but creative leaps
         )
     
     def systems_futurist(self) -> Agent:
@@ -71,7 +74,7 @@ class DebateAgents:
             """),
             allow_delegation=False,
             verbose=True,
-            llm=self.llm_med_temp,
+            llm=self.llm_temp_06,  # Temperature 0.6 for non-linear projections
         )
     
     def pattern_synthesizer(self) -> Agent:
@@ -96,7 +99,7 @@ class DebateAgents:
             """),
             allow_delegation=False,
             verbose=True,
-            llm=self.llm_med_temp,
+            llm=self.llm_temp_05,  # Temperature 0.5 for balanced rigor and pattern discovery
         )
     
     def civilizational_architect(self) -> Agent:
@@ -122,7 +125,7 @@ class DebateAgents:
             """),
             allow_delegation=False,
             verbose=True,
-            llm=self.llm_low_temp,
+            llm=self.llm_temp_03,  # Temperature 0.3 for conservative, robust structures
         )
     
     def entrepreneurial_visionary(self) -> Agent:
@@ -149,7 +152,7 @@ class DebateAgents:
             """),
             allow_delegation=False,
             verbose=True,
-            llm=self.llm_high_temp,
+            llm=self.llm_temp_07,  # Temperature 0.7 for high creativity
         )
     
     def meta_learning_strategist(self) -> Agent:
@@ -174,7 +177,7 @@ class DebateAgents:
             """),
             allow_delegation=False,
             verbose=True,
-            llm=self.llm_low_temp,
+            llm=self.llm_temp_04,  # Temperature 0.4 for systematic but adaptive
         )
 
     # Legacy methods for backwards compatibility
