@@ -1,0 +1,20 @@
+# Core CrewAI and LangChain
+crewai
+langchain
+langchain-openai
+langchain-community
+
+# Configuration management
+python-decouple
+
+# Web scraping and search tools
+requests
+beautifulsoup4
+duckduckgo-search
+
+# Data processing
+pandas
+numpy
+
+# Development tools
+python-dotenv

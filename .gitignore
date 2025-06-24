@@ -9,6 +9,9 @@ server/node_modules
 client/.env
 client/node_modules
 
+agents/utils/.env
+agents/.env
+
 .cache
 .pem
 *.pem
