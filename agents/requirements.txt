@@ -14,7 +14,7 @@ googlesearch-python==1.2.5
 duckduckgo-search==6.2.5
 
 # Memory and vector storage
-chromadb==0.5.5
+chromadb>=0.5.10
 faiss-cpu==1.8.0
 
 # Data processing

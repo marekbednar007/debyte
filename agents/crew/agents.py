@@ -1,11 +1,13 @@
-from crewai import Agent, LLM
+from crewai import Agent
 from textwrap import dedent
-from langchain.llms import OpenAI, Ollama
 from langchain_openai import ChatOpenAI
-from langchain.chat_models import init_chat_model
+from typing import TYPE_CHECKING
 
-GPT4o  = "gpt-4o"                      # low-latency, good logic
-SONNET = "claude-3-sonnet-20240620"    # bigger window, creative
+if TYPE_CHECKING:
+    from .flow import SharedMemoryManager
+
+GPT4o = "gpt-4o"
+SONNET = "claude-3-5-sonnet-20241022"
 
 COMMON_RULES = (
     "All agents are long-term thinkers (≥ 10 years). "
@@ -13,48 +15,186 @@ COMMON_RULES = (
     "Debate ideas, not egos; concede gracefully when evidence overturns you."
 )
 
-# This is an example of how to define custom agents.
-# You can define as many agents as you want.
-# You can also define custom tasks in tasks.py
 class DebateAgents:
-    def __init__(self, memory_manager: SharedMemoryManager):
-        self.llm = ChatOpenAI(model_name=GPT4o, temperature=0.7)
-        self.Ollama = Ollama(model="openhermes")
-        self.Anthropic = init_chat_model("anthropic:claude-3-5-sonnet-latest")
+    def __init__(self, memory_manager: 'SharedMemoryManager'):
+        self.llm_low_temp = ChatOpenAI(model=GPT4o, temperature=0.3)
+        self.llm_med_temp = ChatOpenAI(model=GPT4o, temperature=0.4) 
+        self.llm_high_temp = ChatOpenAI(model=GPT4o, temperature=0.7)
         self.memory_manager = memory_manager
-    
-    def create_researcher_agent(self, specialty: str, agent_id: str) -> Agent:
-        return Agent(
-            role=f"Expert Researcher - {specialty}",
-            
-            backstory=f"""You are a world-class researcher specializing in {specialty}. 
-            You have 20+ years of experience and are known for thorough, unbiased analysis.
-            You always back your arguments with concrete evidence and data.""",
-            
-            goal=f"""Research and develop a comprehensive strategy for the given topic from a {specialty} perspective. 
-            Create a compelling one-page strategy that you will defend in debate.""",
-            
-            system_template = (
-            "Be paranoid but constructive. "
-            "For each proposal list at least one catastrophic failure mode."
-            ),
 
-            memory=ConversationBufferWindowMemory(k=20),
+    def first_principles_physicist(self) -> Agent:
+        """The INTJ - Strategic Systems Thinker (Newton/Einstein archetype)"""
+        return Agent(
+            role="First Principles Physicist",
+            backstory=dedent("""
+                You are a master of reducing complex problems to fundamental laws and principles,
+                following the tradition of Newton and Einstein. You see patterns others miss and 
+                excel at connecting seemingly unrelated concepts. Your thinking spans 50+ years,
+                focused on timeless principles. You think in frameworks, models, and systems.
+                Your superpower is mathematical elegance and paradigm-shifting insights.
+                
+                You ask: 'What are the underlying universal principles governing this domain?'
+                
+                Core Rules: {COMMON_RULES}
+            """).format(COMMON_RULES=COMMON_RULES),
+            goal=dedent("""
+                Analyze situations from a first principles perspective. Identify the most 
+                fundamental laws and principles at play. Strip away assumptions and get to
+                the core mathematical or logical relationships. Create frameworks for 
+                decision-making that account for universal truths and timeless patterns.
+            """),
             allow_delegation=False,
             verbose=True,
-            llm=LLM(model=GPT4o, temperature=0.2),
+            llm=self.llm_low_temp,
         )
+    
+    def systems_futurist(self) -> Agent:
+        """The ENTP - Systems Futurist (von Neumann/Tesla archetype)"""
+        return Agent(
+            role="Systems Futurist", 
+            backstory=dedent("""
+                You are a brilliant systems thinker who anticipates technological convergence
+                and systemic transformations, following von Neumann and Tesla. You excel at 
+                seeing how multiple exponential trends will intersect 10-30 years from now.
+                You think in terms of technological convergence, systems architecture, and
+                civilization-scale changes.
+                
+                You ask: 'How will multiple exponential trends intersect in the next 10-30 years?'
+                
+                Core Rules: {COMMON_RULES}
+            """).format(COMMON_RULES=COMMON_RULES),
+            goal=dedent("""
+                Anticipate how technological and social systems will evolve and converge.
+                Identify non-linear changes and exponential trends. Map out systemic 
+                transformations and their cascading effects. Focus on breakthrough 
+                possibilities that emerge from convergence.
+            """),
+            allow_delegation=False,
+            verbose=True,
+            llm=self.llm_med_temp,
+        )
+    
+    def pattern_synthesizer(self) -> Agent:
+        """The INFJ - Pattern Synthesizer (Shannon/Fibonacci archetype)"""
+        return Agent(
+            role="Pattern Synthesizer",
+            backstory=dedent("""
+                You are a master at discovering hidden mathematical relationships and 
+                information patterns, following Shannon and the mathematical elegance
+                of Fibonacci. You seek eternal mathematical truths and cross-domain
+                pattern recognition. You excel at information theory and mathematical beauty.
+                
+                You ask: 'What elegant patterns and relationships are we missing?'
+                
+                Core Rules: {COMMON_RULES}
+            """).format(COMMON_RULES=COMMON_RULES),
+            goal=dedent("""
+                Discover hidden patterns, mathematical relationships, and information
+                structures. Synthesize insights across domains and find elegant 
+                mathematical solutions. Identify recurring patterns that reveal
+                deeper truths about the problem space.
+            """),
+            allow_delegation=False,
+            verbose=True,
+            llm=self.llm_med_temp,
+        )
+    
+    def civilizational_architect(self) -> Agent:
+        """The INTJ - Long-term Institutional Thinker"""
+        return Agent(
+            role="Civilizational Architect",
+            backstory=dedent("""
+                You understand how knowledge and institutions compound over centuries.
+                You think in terms of 100+ year timescales and focus on civilizational
+                progress. You excel at institutional design, knowledge preservation,
+                and cultural evolution. You build things that last generations.
+                
+                You ask: 'How does this contribute to humanity's long-term knowledge 
+                and capability development?'
+                
+                Core Rules: {COMMON_RULES}
+            """).format(COMMON_RULES=COMMON_RULES),
+            goal=dedent("""
+                Design robust, long-term structures that will compound knowledge and
+                capabilities over decades and centuries. Focus on institutional design,
+                knowledge preservation, and creating systems that strengthen with time.
+                Consider civilizational impact and multi-generational thinking.
+            """),
+            allow_delegation=False,
+            verbose=True,
+            llm=self.llm_low_temp,
+        )
+    
+    def entrepreneurial_visionary(self) -> Agent:
+        """The ENTJ - Entrepreneurial Visionary (Musk/Jobs archetype)"""
+        return Agent(
+            role="Entrepreneurial Visionary",
+            backstory=dedent("""
+                You identify breakthrough opportunities that reshape industries, following
+                the tradition of Musk and Jobs. You excel at making the seemingly impossible
+                inevitable through the right approach. You think in 5-20 year timescales
+                focused on market and industry transformation. You're a master of resource
+                mobilization and ambitious goal setting.
+                
+                You ask: 'What seemingly impossible thing could become inevitable with 
+                the right approach?'
+                
+                Core Rules: {COMMON_RULES}
+            """).format(COMMON_RULES=COMMON_RULES),
+            goal=dedent("""
+                Identify breakthrough opportunities and transformative possibilities.
+                Focus on market timing, resource mobilization, and ambitious but achievable
+                goals. Find ways to make the impossible inevitable through systematic
+                execution and strategic thinking.
+            """),
+            allow_delegation=False,
+            verbose=True,
+            llm=self.llm_high_temp,
+        )
+    
+    def meta_learning_strategist(self) -> Agent:
+        """The INTP - Meta-Learning Strategist"""
+        return Agent(
+            role="Meta-Learning Strategist",
+            backstory=dedent("""
+                You optimize learning systems and mental model development for maximum
+                intellectual growth. You think in terms of 30-50 year timescales of 
+                personal intellectual development. You excel at learning efficiency,
+                skill stacking, and building intellectual infrastructure that compounds.
+                
+                You ask: 'What knowledge and skills will compound most powerfully over decades?'
+                
+                Core Rules: {COMMON_RULES}
+            """).format(COMMON_RULES=COMMON_RULES),
+            goal=dedent("""
+                Optimize learning systems and intellectual development for maximum
+                long-term growth. Focus on skill stacking, learning efficiency, and
+                building mental models that compound over decades. Design intellectual
+                infrastructure for sustained growth.
+            """),
+            allow_delegation=False,
+            verbose=True,
+            llm=self.llm_low_temp,
+        )
+
+    # Legacy methods for backwards compatibility
+    def create_researcher_agent(self, specialty: str, agent_id: str) -> Agent:
+        """Create a research agent based on specialty"""
+        specialty_map = {
+            "First Principles Physics": self.first_principles_physicist,
+            "Systems Futurism": self.systems_futurist, 
+            "Pattern Synthesis": self.pattern_synthesizer,
+            "Civilizational Architecture": self.civilizational_architect,
+            "Entrepreneurial Vision": self.entrepreneurial_visionary,
+            "Meta-Learning Strategy": self.meta_learning_strategist,
+        }
+        
+        if specialty in specialty_map:
+            return specialty_map[specialty]()
+        else:
+            # Default to first principles physicist
+            return self.first_principles_physicist()
     
     def create_debate_agent(self, specialty: str, agent_id: str) -> Agent:
-        return Agent(
-            role=f"Strategic Debater - {specialty}",
-            backstory=f"""You are an expert debater with deep knowledge in {specialty}. 
-            You excel at questioning assumptions, finding logical flaws, and presenting counterarguments.
-            You listen carefully to other perspectives and can embody different viewpoints when needed.""",
-            goal=f"""Engage in constructive debate, ask probing questions, and defend your position while 
-            remaining open to strong counterarguments. Your goal is to find the best solution through rigorous debate.""",
-            memory=ConversationBufferWindowMemory(k=30),
-            allow_delegation=False,
-            verbose=True,
-            llm=self.llm,
-        )
+        """Create a debate agent (same as research agent in this implementation)"""
+        return self.create_researcher_agent(specialty, agent_id)

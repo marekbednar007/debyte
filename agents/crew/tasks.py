@@ -1,11 +1,13 @@
 # To know more about the Task class, visit: https://docs.crewai.com/concepts/tasks
-from crewai import Task
+from crewai import Task, Agent
 from textwrap import dedent
+from typing import Dict
+import json
 
 A4_LIMIT = "(<2100 words)"
 
 class DebateTasks:
-    def __init__(self, memory_manager: SharedMemoryManager):
+    def __init__(self, memory_manager):
         self.memory_manager = memory_manager
     
     def research_task(self, agent: Agent, topic: str, specialty: str) -> Task:
