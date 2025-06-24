@@ -5,9 +5,13 @@ import asyncio
 import sys
 import os
 from textwrap import dedent
+from decouple import config
 
 # Add the parent directory to the path so we can import from crew
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Set up OpenAI API key from environment
+os.environ["OPENAI_API_KEY"] = config("OPENAI_API_KEY")
 
 from crew.flow import DebateOrchestrator
 
@@ -95,6 +99,9 @@ class DebateCLI:
             
         except Exception as e:
             print(f"❌ Error during debate: {str(e)}")
+            print(f"Error type: {type(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
             print("Please check your API keys and try again.")
             return None
     

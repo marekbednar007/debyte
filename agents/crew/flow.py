@@ -98,6 +98,9 @@ class DebateOrchestrator:
     
     async def initialize_agents(self):
         """Create all agents for the debate"""
+        # Clear any existing agents to avoid duplicates
+        self.agents = []
+        
         for config in self.agent_configs:
             agent_method = getattr(self.agent_factory, config['method'])
             agent = agent_method()
@@ -134,8 +137,14 @@ class DebateOrchestrator:
             )
             
             result = crew.kickoff()
-            strategies[agent_data['name']] = result
-            self.memory_manager.update_global_context(f"strategy_{agent_data['name']}", result)
+            # Handle CrewOutput object properly
+            if hasattr(result, 'raw') or hasattr(result, 'content'):
+                # Try to extract content from CrewOutput object
+                strategy_content = getattr(result, 'raw', str(result))
+            else:
+                strategy_content = str(result)
+            strategies[agent_data['name']] = strategy_content
+            self.memory_manager.update_global_context(f"strategy_{agent_data['name']}", strategy_content)
         
         return strategies
     
@@ -182,8 +191,9 @@ class DebateOrchestrator:
             )
             
             result = crew.kickoff()
-            embodiments[agent_data['name']] = result
-            self.memory_manager.update_global_context(f"embodiment_{agent_data['name']}", result)
+            embodiment_content = str(result)
+            embodiments[agent_data['name']] = embodiment_content
+            self.memory_manager.update_global_context(f"embodiment_{agent_data['name']}", embodiment_content)
         
         return embodiments
     
@@ -210,8 +220,9 @@ class DebateOrchestrator:
             )
             
             result = crew.kickoff()
-            revised_strategies[agent_data['name']] = result
-            self.memory_manager.update_global_context(f"revised_{agent_data['name']}", result)
+            revised_content = str(result)
+            revised_strategies[agent_data['name']] = revised_content
+            self.memory_manager.update_global_context(f"revised_{agent_data['name']}", revised_content)
         
         return revised_strategies
     
@@ -241,11 +252,12 @@ class DebateOrchestrator:
                         verbose=True
                     )
                     question = question_crew.kickoff()
+                    question_content = str(question)
                     
                     # Generate response
                     response_task = self.task_factory.debate_response_task(
                         responder['agent'],
-                        question,
+                        question_content,
                         questioner['name']
                     )
                     response_crew = Crew(
@@ -254,19 +266,20 @@ class DebateOrchestrator:
                         verbose=True
                     )
                     response = response_crew.kickoff()
+                    response_content = str(response)
                     
                     debate_entry = {
                         'round': round_num,
                         'questioner': questioner['name'],
                         'responder': responder['name'],
-                        'question': question,
-                        'response': response
+                        'question': question_content,
+                        'response': response_content
                     }
                     
                     debate_results.append(debate_entry)
                     self.memory_manager.add_to_debate_history(
                         f"{questioner['name']} → {responder['name']}",
-                        f"Q: {question}\nA: {response}",
+                        f"Q: {question_content}\nA: {response_content}",
                         round_num
                     )
                     
@@ -298,8 +311,8 @@ class DebateOrchestrator:
             )
             
             result = crew.kickoff()
-            votes[agent_data['name']] = result
-            final_positions[agent_data['name']] = result
+            votes[agent_data['name']] = str(result)
+            final_positions[agent_data['name']] = str(result)
         
         # Analyze votes for consensus
         consensus_result = self._analyze_consensus(votes)
@@ -394,7 +407,7 @@ class DebateOrchestrator:
             'voting_results': voting_results if 'voting_results' in locals() else None,
             'consensus_reached': consensus_reached,
             'iterations_completed': iteration - 1,
-            'global_context': self.memory_manager.global_context
+            'global_context': dict(self.memory_manager.global_context)  # Ensure it's a plain dict
         }
 
 # Usage example

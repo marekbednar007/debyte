@@ -5,6 +5,11 @@ Quick test to verify the AI Board of Directors system is working correctly
 import asyncio
 import os
 import sys
+from decouple import config
+
+# Configure environment variables first
+os.environ["OPENAI_API_KEY"] = config("OPENAI_API_KEY")
+os.environ["ANTHROPIC_API_KEY"] = config("ANTHROPIC_API_KEY", default="")
 
 # Add the current directory to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

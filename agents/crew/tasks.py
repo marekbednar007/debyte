@@ -74,13 +74,21 @@ class DebateTasks:
             
             Guidelines:
             1. Address the question directly and thoroughly
-            2. Use evidence to support your response
-            3. Acknowledge valid points while defending your position
-            4. Be open to modifying your stance if presented with compelling evidence
+            2. Use specific evidence or examples to support your response
+            3. Acknowledge any valid points in the question
+            4. Clarify your position if there was misunderstanding
+            5. Be open to modifying your view if the question reveals flaws
+            6. Ask a follow-up question if needed for clarification
+            
+            Length: 200-400 words maximum
+            Tone: Professional, respectful, intellectually honest
+            
+            If this question has genuinely changed your mind about something,
+            say so explicitly and explain why.
             
             Context: {self.memory_manager.get_context_for_agent(responder.role)}
             """,
-            expected_output="A thoughtful, evidence-based response to the question",
+            expected_output="A direct, thoughtful response to the debate question",
             agent=responder,
         )
     
