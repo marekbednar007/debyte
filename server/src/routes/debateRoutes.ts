@@ -13,8 +13,14 @@ const router = express.Router();
 
 // ===== MAIN DEBATE ENDPOINTS (Frontend Integration) =====
 
-// Start a new debate session (Primary endpoint for frontend)
-router.post('/debates/start', DebateController.startDebate);
+// Start a new debate session (Frontend expects: POST /debates)
+router.post('/debates', DebateController.startDebate);
+
+// Stream debate updates via SSE (Frontend expects: GET /debates/:id/stream)
+router.get('/debates/:id/stream', DebateController.streamDebateUpdates);
+
+// Download final report (Frontend expects: GET /debates/:id/report)
+router.get('/debates/:id/report', DebateController.getDebateReport);
 
 // Get debate status and results (Primary endpoint for frontend)
 router.get('/debates/:id/status', DebateController.getDebateStatus);
@@ -27,6 +33,9 @@ router.post('/debates/:id/stop', DebateController.stopDebate);
 
 // Get debate statistics (Primary endpoint for frontend)
 router.get('/debates/stats', DebateController.getDebateStats);
+
+// Legacy endpoint for backward compatibility
+router.post('/debates/start', DebateController.startDebate);
 
 // ===== LOW-LEVEL DATABASE ENDPOINTS (Python Agent Integration) =====
 
