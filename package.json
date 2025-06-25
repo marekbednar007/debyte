@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "concurrently -k -r -s first \"npm:dev:server\" \"npm:dev:client\" \"npm:dev:agents\"",
     "dev:server": "npm --workspace server run dev",
     "dev:client": "npm --workspace client run dev",
-    "dev:agents": "pipenv run python agents/main.py --watch"
+    "dev:agents": "cd agents && python3 main.py --watch"
   },
   "repository": {
     "type": "git",

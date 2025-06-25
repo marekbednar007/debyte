@@ -13,7 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from .agents import DebateAgents
 from .tasks import DebateTasks
-from utils.history_manager import ChatHistoryManager
+from utils.db_adapter import DatabaseIntegratedHistoryManager
 
 @dataclass
 class DebateContext:
@@ -66,7 +66,7 @@ class DebateOrchestrator:
         self.memory_manager = SharedMemoryManager()
         self.agent_factory = DebateAgents(self.memory_manager)
         self.task_factory = DebateTasks(self.memory_manager)
-        self.history_manager = ChatHistoryManager()
+        self.history_manager = DatabaseIntegratedHistoryManager()
         self.agents = []
         
         # The 6 specialized agents for the board of long-term thinkers
