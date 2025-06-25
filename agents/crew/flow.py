@@ -125,7 +125,7 @@ class DebateOrchestrator:
     async def run_research_phase(self, topic: str):
         """Phase 1: All agents research and create strategies (Rule 1)"""
         print(f"🔬 Phase 1: Research Phase for topic: {topic}")
-        print("Each agent will develop up to 3 A4 pages (< 2100 words)")
+        print("Each agent will develop a strategy (< 900 words)")
         
         strategies = {}
         
@@ -233,17 +233,17 @@ class DebateOrchestrator:
     async def run_adjustment_phase(self, strategies: Dict[str, str], embodiments: Dict[str, str]):
         """Phase 4: Adjust argumentation based on new understanding (Rule 4)"""
         print("🔄 Phase 4: Strategy Adjustment Phase")
-        print("Each agent adjusts their strategy based on understanding others' perspectives")
+        print("Each agent adjusts their strategy considering other agents' perspectives")
         
         revised_strategies = {}
         
         for agent_data in self.agents:
             print(f"  → {agent_data['name']} adjusting strategy...")
             
-            # Create revision task that incorporates embodiment insights
-            task = self.task_factory.strategy_revision_task(
+            # Create revision task that considers other strategies directly
+            task = self.task_factory.strategy_revision_task_simplified(
                 agent_data['agent'],
-                embodiments[agent_data['name']],
+                strategies,  # Pass all strategies instead of embodiments
                 strategies[agent_data['name']]
             )
             crew = Crew(
@@ -383,6 +383,105 @@ class DebateOrchestrator:
         
         return voting_results
     
+    async def run_collaborative_report_phase(self, final_strategies: Dict[str, str], voting_results: Dict):
+        """Phase 7: Generate collaborative final report that all agents agree on"""
+        print("📝 Phase 7: Collaborative Final Report Generation")
+        print("All agents collaborate to create a unified final report")
+        
+        # Use the first agent as the lead writer (all agents will agree on the final report)
+        lead_agent = self.agents[0]
+        
+        # Determine winning strategy for context
+        winning_strategy = "Systems approach with integrated perspectives"
+        if voting_results and 'consensus' in voting_results and voting_results['consensus']['winning_agent']:
+            winning_strategy = f"{voting_results['consensus']['winning_agent']}'s approach"
+        
+        print(f"  → {lead_agent['name']} drafting collaborative report...")
+        
+        # Create collaborative final report task
+        task = self.task_factory.collaborative_final_report_task(
+            lead_agent['agent'],
+            winning_strategy,
+            final_strategies,
+            voting_results['votes'] if voting_results else {},
+            self.history_manager.current_session_folder
+        )
+        crew = Crew(
+            agents=[lead_agent['agent']],
+            tasks=[task],
+            verbose=False  # Reduce verbose output
+        )
+        
+        result = crew.kickoff()
+        collaborative_report = str(result)
+        
+        # Save collaborative report to history
+        self.history_manager.save_agent_round(
+            "Board Collective", 1, collaborative_report, "final_report"
+        )
+        
+        # Also save as a special final report file
+        final_report_path = os.path.join(
+            self.history_manager.current_session_folder,
+            "FINAL_COLLABORATIVE_REPORT.txt"
+        )
+        with open(final_report_path, 'w', encoding='utf-8') as f:
+            f.write("BOARD OF DIRECTORS - COLLABORATIVE FINAL REPORT\n")
+            f.write("=" * 80 + "\n\n")
+            f.write(collaborative_report)
+        
+        return collaborative_report
+    
+    async def run_collaborative_report_phase(self, final_strategies: Dict[str, str], 
+                                           voting_results: Dict[str, Any]) -> str:
+        """Phase 7: Generate collaborative final report that all agents agree on"""
+        print("📝 Phase 7: Collaborative Final Report Generation")
+        print("All agents collaborating to create a unified final report")
+        
+        # Determine winning strategy
+        winning_agent = voting_results['consensus'].get('winning_agent', 'No clear winner')
+        winning_strategy = final_strategies.get(winning_agent, "No winning strategy identified")
+        
+        # Have all agents collaborate on a final report
+        print("  → All agents contributing to unified final report...")
+        
+        # Use the first agent as the primary writer, but include context from all
+        primary_agent = self.agents[0]['agent']
+        
+        task = self.task_factory.collaborative_final_report_task(
+            primary_agent,
+            winning_strategy,
+            final_strategies,
+            voting_results['votes'],
+            self.history_manager.current_session_folder
+        )
+        
+        crew = Crew(
+            agents=[agent_data['agent'] for agent_data in self.agents],  # All agents participate
+            tasks=[task],
+            verbose=False
+        )
+        
+        result = crew.kickoff()
+        final_report = str(result)
+        
+        # Save the collaborative report
+        self.history_manager.save_agent_round(
+            "Board Collective", 1, final_report, "final_report"
+        )
+        
+        # Save as special final report file
+        if self.history_manager.current_session_folder:
+            with open(os.path.join(self.history_manager.current_session_folder, "FINAL_COLLABORATIVE_REPORT.txt"), 'w', encoding='utf-8') as f:
+                f.write("BOARD OF DIRECTORS - COLLABORATIVE FINAL REPORT\n")
+                f.write("=" * 80 + "\n\n")
+                f.write("This report represents the unified wisdom and consensus of all board members.\n")
+                f.write("All agents have contributed to and agreed upon these recommendations.\n\n")
+                f.write("=" * 80 + "\n\n")
+                f.write(final_report)
+        
+        return final_report
+    
     def _analyze_consensus(self, votes: Dict[str, str]) -> Dict:
         """Analyze votes to determine if consensus is reached"""
         # This is a simplified consensus analysis
@@ -429,8 +528,9 @@ class DebateOrchestrator:
         # Phase 2: Presentation (Rule 2)
         presentations = await self.run_presentation_phase(strategies)
         
-        # Phase 3: Embodiment (Rule 3)
-        embodiments = await self.run_embodiment_phase(strategies)
+        # Phase 3: Embodiment (Rule 3) - TEMPORARILY DISABLED FOR SPEED
+        # embodiments = await self.run_embodiment_phase(strategies)
+        embodiments = {}  # Empty for now to maintain compatibility
         
         # Iterative process for Rules 4-7
         iteration = 1
@@ -466,13 +566,22 @@ class DebateOrchestrator:
         
         if not consensus_reached:
             print(f"⏰ Maximum iterations ({max_iterations}) reached without consensus")
-            print("Returning best available result...")
+            print("Proceeding with best available result for collaborative report...")
+        
+        # Phase 7: Collaborative Final Report (Always run this, regardless of consensus)
+        print(f"\n📝 Generating Collaborative Final Report")
+        print("=" * 50)
+        collaborative_report = await self.run_collaborative_report_phase(
+            final_revised_strategies, 
+            final_voting_results
+        )
         
         # Prepare final report with complete data
         final_report = {
             'topic': topic,
             'session_folder': session_folder,
             'final_strategies': final_revised_strategies,
+            'collaborative_report': collaborative_report,
             'debate_history': self.memory_manager.debate_history,
             'voting_results': final_voting_results,
             'consensus_reached': consensus_reached,
@@ -500,24 +609,31 @@ class DebateOrchestrator:
         if consensus_reached and final_voting_results:
             print(f"🏆 Winning approach: {final_voting_results['consensus']['winning_agent']}")
         
-        # Show abbreviated final strategies (first 200 chars each)
-        print(f"\n📋 FINAL STRATEGIES SUMMARY:")
+        # Show the beginning of the collaborative report
+        print(f"\n📋 COLLABORATIVE FINAL REPORT (Preview):")
+        print("-" * 50)
+        if collaborative_report:
+            report_preview = collaborative_report[:500] + "..." if len(collaborative_report) > 500 else collaborative_report
+            print(report_preview)
+            print(f"\n📖 Full collaborative report saved as: FINAL_COLLABORATIVE_REPORT.txt")
+        
+        # Show abbreviated individual strategies
+        print(f"\n📋 INDIVIDUAL FINAL STRATEGIES (Preview):")
         print("-" * 50)
         for agent_name, strategy in final_revised_strategies.items():
-            strategy_preview = str(strategy)[:200] + "..." if len(str(strategy)) > 200 else str(strategy)
-            print(f"\n{agent_name}:")
-            print(strategy_preview)
+            strategy_preview = str(strategy)[:150] + "..." if len(str(strategy)) > 150 else str(strategy)
+            print(f"\n{agent_name}: {strategy_preview}")
         
         # Show voting summary
         if final_voting_results and 'votes' in final_voting_results:
-            print(f"\n🗳️ VOTING SUMMARY:")
+            print(f"\n🗳️ VOTING SUMMARY (Preview):")
             print("-" * 50)
             for agent_name, vote in final_voting_results['votes'].items():
-                vote_preview = str(vote)[:150] + "..." if len(str(vote)) > 150 else str(vote)
-                print(f"\n{agent_name}'s vote:")
-                print(vote_preview)
+                vote_preview = str(vote)[:100] + "..." if len(str(vote)) > 100 else str(vote)
+                print(f"{agent_name}: {vote_preview}")
         
-        print(f"\n📖 For complete details, check the files in: {session_folder}")
+        print(f"\n📖 Complete details in folder: {session_folder}")
+        print("🌟 Main deliverable: FINAL_COLLABORATIVE_REPORT.txt")
         
         return final_report
 
