@@ -17,8 +17,9 @@ from crew.flow import DebateOrchestrator
 
 
 class DebateCLI:
-    def __init__(self):
+    def __init__(self, headless_mode=False):
         self.orchestrator = DebateOrchestrator()
+        self.headless_mode = headless_mode
     
     def display_banner(self):
         print(dedent("""
@@ -60,11 +61,22 @@ class DebateCLI:
         print("\nOr enter your own question/decision/topic:")
         print("-" * 50)
         
-        topic = input("Enter your debate topic: ").strip()
+        try:
+            topic = input("Enter your debate topic: ").strip()
+        except EOFError:
+            print("❌ No input available (stdin closed). Using default topic for testing.")
+            topic = "Should AI development prioritize safety or innovation?"
+        except KeyboardInterrupt:
+            print("\n👋 Goodbye!")
+            raise
         
         if not topic:
             print("❌ Please enter a topic to debate!")
-            return self.get_user_input()
+            try:
+                return self.get_user_input()
+            except RecursionError:
+                print("❌ Too many retries. Using default topic.")
+                return "Should AI development prioritize safety or innovation?"
         
         return topic
     
@@ -74,8 +86,10 @@ class DebateCLI:
         print("=" * 70)
         
         try:
-            max_iterations = int(input("Maximum debate iterations (default 3): ") or "3")
-        except ValueError:
+            max_iterations_input = input("Maximum debate iterations (default 3): ") or "3"
+            max_iterations = int(max_iterations_input)
+        except (ValueError, EOFError):
+            print("❌ Invalid input or no input available. Using default: 3")
             max_iterations = 3
         
         return {
@@ -131,7 +145,12 @@ class DebateCLI:
         print(f"  • Strategies developed: {len(results['final_strategies'])}")
         
         # Ask if user wants to see detailed results
-        show_details = input("\nWould you like to see detailed results? (y/n): ").lower() == 'y'
+        try:
+            show_details = input("\nWould you like to see detailed results? (y/n): ").lower() == 'y'
+        except EOFError:
+            print("\n❌ No input available. Skipping detailed results.")
+            show_details = False
+        
         if show_details:
             self.display_detailed_results(results)
     
@@ -158,6 +177,14 @@ class DebateCLI:
     
     async def run(self):
         """Main CLI loop"""
+        # Check if we can use interactive input
+        if self.headless_mode or not sys.stdin.isatty():
+            print("🤖 Running in headless mode - using default debate topic")
+            topic = "Should AI development prioritize safety or innovation?"
+            settings = {'max_iterations': 3}
+            results = await self.run_debate_session(topic, settings)
+            return results
+        
         self.display_banner()
         
         while True:
@@ -171,12 +198,20 @@ class DebateCLI:
                 
                 if results:
                     print("\n" + "=" * 70)
-                    again = input("Would you like to start another debate? (y/n): ").lower()
+                    try:
+                        again = input("Would you like to start another debate? (y/n): ").lower()
+                    except EOFError:
+                        print("\n❌ No input available. Ending session.")
+                        break
+                    
                     if again != 'y':
                         break
                         
             except KeyboardInterrupt:
                 print("\n\n👋 Thanks for using the AI Board of Directors!")
+                break
+            except EOFError:
+                print("\n❌ No input available (stdin closed). Ending session.")
                 break
             except Exception as e:
                 print(f"❌ Unexpected error: {str(e)}")

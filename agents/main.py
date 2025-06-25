@@ -1,4 +1,5 @@
 import os
+import sys
 import asyncio
 import argparse
 from decouple import config
@@ -61,9 +62,21 @@ async def main():
     
     # Otherwise run CLI interface
     else:
-        cli = DebateCLI()
+        # Check if stdin is available for interactive mode
+        if not sys.stdin.isatty():
+            print("🤖 No interactive terminal detected - running in headless mode")
+            cli = DebateCLI(headless_mode=True)
+        else:
+            cli = DebateCLI()
         await cli.run()
 
 if __name__ == "__main__":
-    exit_code = asyncio.run(main())
-    exit(exit_code or 0)
+    try:
+        exit_code = asyncio.run(main())
+        exit(exit_code or 0)
+    except KeyboardInterrupt:
+        print("\n👋 Shutting down...")
+        exit(0)
+    except Exception as e:
+        print(f"❌ Fatal error: {e}")
+        exit(1)
