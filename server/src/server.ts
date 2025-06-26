@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import app from './app';
+import DatabaseConnection from './config/database';
+import { DebateController } from './controllers/debateController';
 
 console.log('Booting server...');
 console.log('Start of server.ts');
@@ -13,12 +15,24 @@ process.on('unhandledRejection', (reason) => {
 
 const port = process.env.PORT || 4000;
 
-// await connectMongo();
+// Initialize database connection
+const initializeDatabase = async () => {
+  try {
+    await DatabaseConnection.connect();
+    console.log('✅ Database initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize database:', error);
+    process.exit(1);
+  }
+};
 
 async function startServer() {
   try {
-    // DB implementation (MongoDB, Pinecone,...)
-    // await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Initialize database first
+    await initializeDatabase();
+
+    // Clean up any orphaned debate processes from previous runs
+    await DebateController.cleanupOrphanedProcesses();
 
     app
       .listen(port, () => {

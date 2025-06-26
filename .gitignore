@@ -11,6 +11,7 @@ client/node_modules
 
 agents/utils/.env
 agents/.env
+agents/chat_history
 
 .cache
 .pem
