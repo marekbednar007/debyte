@@ -61,7 +61,17 @@ class MongoDBAdapter:
                 'metadata': metadata or {}
             }
             
-            response = requests.post(f"{self.api_base_url}/agent-outputs", json=payload)
+            print(f"🔄 Sending agent output to {self.api_base_url}/agent-outputs")
+            print(f"   Agent: {agent_name}, Phase: {phase}, Round: {round_number}")
+            print(f"   Content length: {len(content)} characters")
+            print(f"   Content preview: {content[:100]}..." if len(content) > 100 else f"   Content: {content}")
+            
+            response = requests.post(f"{self.api_base_url}/agent-outputs", json=payload, timeout=30)
+            
+            print(f"   Response status: {response.status_code}")
+            if response.status_code != 200:
+                print(f"   Response content: {response.text}")
+            
             response.raise_for_status()
             
             print(f"✅ Saved {agent_name} {phase} output to MongoDB")
@@ -69,6 +79,9 @@ class MongoDBAdapter:
             
         except Exception as e:
             print(f"❌ Failed to save agent output to MongoDB: {e}")
+            print(f"   Response: {getattr(response, 'text', 'No response')}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def save_debate_exchange(self, round_number: int, questioner: str, responder: str,

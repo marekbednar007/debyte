@@ -131,6 +131,7 @@ class DebateOrchestrator:
         
         for agent_data in self.agents:
             print(f"  → {agent_data['name']} researching...")
+            start_time = time.time()
             
             task = self.task_factory.research_task(
                 agent_data['agent'], 
@@ -140,16 +141,24 @@ class DebateOrchestrator:
             crew = Crew(
                 agents=[agent_data['agent']],
                 tasks=[task],
-                verbose=False  # Reduce verbose output
+                verbose=True  # Enable verbose output to see progress
             )
             
+            print(f"    ⏱️  Starting research for {agent_data['name']}...")
             result = crew.kickoff()
+            elapsed = time.time() - start_time
+            print(f"    ✅ {agent_data['name']} completed research in {elapsed:.1f}s")
+            
             # Handle CrewOutput object properly
             if hasattr(result, 'raw') or hasattr(result, 'content'):
                 # Try to extract content from CrewOutput object
                 strategy_content = getattr(result, 'raw', str(result))
             else:
                 strategy_content = str(result)
+            
+            # Show a preview of the content
+            preview = strategy_content[:200] + "..." if len(strategy_content) > 200 else strategy_content
+            print(f"    📄 Strategy preview: {preview}")
             
             strategies[agent_data['name']] = strategy_content
             self.memory_manager.update_global_context(f"strategy_{agent_data['name']}", strategy_content)
@@ -158,6 +167,7 @@ class DebateOrchestrator:
             self.history_manager.save_agent_round(
                 agent_data['name'], 1, strategy_content, "research"
             )
+            print(f"    💾 Saved strategy to database")
         
         # Save phase summary
         self.history_manager.save_phase_summary("research", strategies)

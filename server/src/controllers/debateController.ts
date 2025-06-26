@@ -140,14 +140,14 @@ export class DebateController {
         '--max-iterations',
         maxIterations.toString(),
         '--api-url',
-        process.env.API_URL || 'http://localhost:4000/api',
+        process.env.API_URL || 'http://localhost:3001/api',
       ],
       {
         cwd: agentsPath,
         stdio: ['pipe', 'pipe', 'pipe'],
         env: {
           ...process.env,
-          DEBATE_API_URL: process.env.API_URL || 'http://localhost:4000/api',
+          DEBATE_API_URL: process.env.API_URL || 'http://localhost:3001/api',
         },
       }
     );
