@@ -5,11 +5,13 @@ interface HistorySidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   currentSession: DebateSession | null;
+  onSelectDebate?: (debate: DebateSession) => void;
 }
 
 export const HistorySidebar: React.FC<HistorySidebarProps> = ({
   isOpen,
   currentSession,
+  onSelectDebate,
 }) => {
   const [debates, setDebates] = useState<DebateSession[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -18,11 +20,24 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
     const fetchDebates = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:3001/api/debates');
+        const response = await fetch('/api/debates');
+        if (!response.ok) {
+          throw new Error('Failed to fetch debates');
+        }
         const data = await response.json();
         setDebates(data.debates || []);
       } catch (error) {
         console.error('Failed to fetch debate history:', error);
+        // Try with full URL as fallback
+        try {
+          const response = await fetch('http://localhost:3001/api/debates');
+          if (response.ok) {
+            const data = await response.json();
+            setDebates(data.debates || []);
+          }
+        } catch (fallbackError) {
+          console.error('Fallback fetch also failed:', fallbackError);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -58,14 +73,18 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
   };
 
   if (!isOpen) {
-    return null;
+    return (
+      <div className='w-0 overflow-hidden transition-all duration-300'>
+        {/* Hidden sidebar */}
+      </div>
+    );
   }
 
   return (
     <div className='w-80 bg-gray-800 border-r border-gray-700 flex flex-col'>
       {/* Header */}
       <div className='p-4 border-b border-gray-700'>
-        <h2 className='text-lg font-semibold text-white mb-2'>Chat History</h2>
+        <h2 className='text-lg font-semibold text-gray-100 mb-2'>History</h2>
         <div className='text-sm text-gray-400'>
           {debates.length} debate{debates.length !== 1 ? 's' : ''}
         </div>
@@ -79,8 +98,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
           </div>
         ) : debates.length === 0 ? (
           <div className='p-4 text-center text-gray-400'>
-            <div className='mb-2'>🤖</div>
-            <div>No debates yet</div>
+            <div className='mb-2 text-lg'>No debates yet</div>
             <div className='text-xs mt-1'>
               Start a new conversation to begin
             </div>
@@ -90,7 +108,8 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
             {debates.map((debate) => (
               <div
                 key={debate._id}
-                className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                onClick={() => onSelectDebate?.(debate)}
+                className={`p-3 rounded-xl cursor-pointer transition-colors ${
                   currentSession?._id === debate._id
                     ? 'bg-gray-700 border border-gray-600'
                     : 'hover:bg-gray-700'
@@ -98,7 +117,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
               >
                 <div className='flex items-start justify-between'>
                   <div className='flex-1 min-w-0'>
-                    <div className='text-sm font-medium text-white mb-1'>
+                    <div className='text-sm font-medium text-gray-100 mb-1'>
                       {truncateTitle(debate.topic)}
                     </div>
                     <div className='flex items-center space-x-2 text-xs text-gray-400'>
@@ -107,10 +126,10 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
                       <span
                         className={`px-2 py-0.5 rounded text-xs ${
                           debate.status === 'complete'
-                            ? 'bg-green-900 text-green-300'
+                            ? 'bg-gray-600 text-gray-300'
                             : debate.status === 'active'
-                            ? 'bg-blue-900 text-blue-300'
-                            : 'bg-yellow-900 text-yellow-300'
+                            ? 'bg-gray-700 text-gray-200'
+                            : 'bg-gray-600 text-gray-400'
                         }`}
                       >
                         {debate.status}
@@ -126,8 +145,8 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
 
       {/* Footer */}
       <div className='p-4 border-t border-gray-700'>
-        <div className='text-xs text-gray-400 text-center'>
-          AI Board of Directors
+        <div className='text-xs text-gray-500 text-center'>
+          Multi-Agent Debate System
         </div>
       </div>
     </div>

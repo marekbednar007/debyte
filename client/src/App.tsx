@@ -35,13 +35,20 @@ function App() {
     setSelectedAttachment(null);
   };
 
+  const handleSelectDebate = (debate: any) => {
+    // For now, just log the selection. In a full implementation,
+    // this would load the selected debate's messages
+    console.log('Selected debate:', debate);
+  };
+
   return (
-    <div className='flex h-screen bg-gray-900 text-white'>
+    <div className='flex h-screen bg-gray-900 text-gray-100'>
       {/* Left Sidebar - History */}
       <HistorySidebar
         isOpen={isHistorySidebarOpen}
         onToggle={() => setIsHistorySidebarOpen(!isHistorySidebarOpen)}
         currentSession={currentSession}
+        onSelectDebate={handleSelectDebate}
       />
 
       {/* Main Content Area */}

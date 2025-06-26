@@ -33,6 +33,46 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [customPrompt, setCustomPrompt] = useState('');
   const [maxIterations, setMaxIterations] = useState(3);
 
+  // Function to format markdown-like text
+  const formatMessageContent = (content: string) => {
+    let formatted = content;
+
+    // Replace markdown formatting
+    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold text
+    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>'); // Italic text
+
+    // Headers
+    formatted = formatted.replace(
+      /^### (.*$)/gim,
+      '<h3 class="text-lg font-semibold mb-2 mt-4 text-gray-100">$1</h3>'
+    );
+    formatted = formatted.replace(
+      /^## (.*$)/gim,
+      '<h2 class="text-xl font-semibold mb-3 mt-4 text-gray-100">$1</h2>'
+    );
+    formatted = formatted.replace(
+      /^# (.*$)/gim,
+      '<h1 class="text-2xl font-bold mb-4 mt-4 text-gray-100">$1</h1>'
+    );
+
+    // Lists
+    formatted = formatted.replace(
+      /^\- (.*$)/gim,
+      '<div class="ml-4 mb-1">• $1</div>'
+    );
+    formatted = formatted.replace(
+      /^\d+\. (.*$)/gim,
+      '<div class="ml-4 mb-1">$1</div>'
+    );
+
+    // Clean up excessive line breaks
+    formatted = formatted.replace(/\n\n\n+/g, '\n\n'); // Replace multiple line breaks with double
+    formatted = formatted.replace(/\n\n/g, '<br><br>'); // Double line breaks become paragraph breaks
+    formatted = formatted.replace(/\n/g, '<br>'); // Single line breaks
+
+    return formatted;
+  };
+
   const handleStartDebate = () => {
     const topic = selectedPrompt || customPrompt.trim();
     if (topic) {
@@ -41,27 +81,28 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   const getAgentIcon = (agentName: string) => {
-    const icons: Record<string, string> = {
-      'First Principles Physicist': '⚛️',
-      'Systems Futurist': '🌐',
-      'Pattern Synthesizer': '🧩',
-      'Civilizational Architect': '🏛️',
-      'Entrepreneurial Visionary': '🚀',
-      'Meta-Learning Strategist': '🎯',
+    // Removed all emojis - using initials instead
+    const initials: Record<string, string> = {
+      'First Principles Physicist': 'FP',
+      'Systems Futurist': 'SF',
+      'Pattern Synthesizer': 'PS',
+      'Civilizational Architect': 'CA',
+      'Entrepreneurial Visionary': 'EV',
+      'Meta-Learning Strategist': 'ML',
     };
-    return icons[agentName] || '🤖';
+    return initials[agentName] || 'AG';
   };
 
   const getAgentColor = (agentName: string) => {
     const colors: Record<string, string> = {
-      'First Principles Physicist': 'border-blue-500 bg-blue-500/10',
-      'Systems Futurist': 'border-purple-500 bg-purple-500/10',
-      'Pattern Synthesizer': 'border-green-500 bg-green-500/10',
-      'Civilizational Architect': 'border-yellow-500 bg-yellow-500/10',
-      'Entrepreneurial Visionary': 'border-red-500 bg-red-500/10',
-      'Meta-Learning Strategist': 'border-indigo-500 bg-indigo-500/10',
+      'First Principles Physicist': 'border-gray-600 bg-gray-700',
+      'Systems Futurist': 'border-gray-500 bg-gray-600',
+      'Pattern Synthesizer': 'border-gray-600 bg-gray-700',
+      'Civilizational Architect': 'border-gray-500 bg-gray-600',
+      'Entrepreneurial Visionary': 'border-gray-600 bg-gray-700',
+      'Meta-Learning Strategist': 'border-gray-500 bg-gray-600',
     };
-    return colors[agentName] || 'border-gray-500 bg-gray-500/10';
+    return colors[agentName] || 'border-gray-600 bg-gray-700';
   };
 
   if (!currentSession) {
@@ -71,20 +112,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <div className='flex-1 flex items-center justify-center'>
           <div className='max-w-3xl mx-auto text-center px-6'>
             <div className='mb-8'>
-              <div className='text-6xl mb-4'>🤖</div>
-              <h1 className='text-4xl font-bold text-white mb-2'>
-                AI Board of Directors
+              <h1 className='text-4xl font-bold text-gray-100 mb-6'>
+                Multi-Agent Debate System
               </h1>
-              <p className='text-lg text-gray-400'>
-                Start a multi-agent debate on any topic
-              </p>
             </div>
 
             {/* Prompt Selection */}
             <div className='space-y-6'>
               <div>
-                <h3 className='text-lg font-semibold text-white mb-4'>
-                  Choose a debate topic
+                <h3 className='text-lg font-semibold text-gray-100 mb-4'>
+                  Select a topic
                 </h3>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                   {DEBATE_PROMPTS.map((prompt, index) => (
@@ -94,9 +131,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         setSelectedPrompt(prompt);
                         setCustomPrompt('');
                       }}
-                      className={`p-4 text-left rounded-lg border transition-colors ${
+                      className={`p-4 text-left rounded-xl border transition-colors ${
                         selectedPrompt === prompt
-                          ? 'border-blue-500 bg-blue-500/10 text-white'
+                          ? 'border-gray-500 bg-gray-700 text-gray-100'
                           : 'border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500 hover:bg-gray-700'
                       }`}
                     >
@@ -117,7 +154,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       setSelectedPrompt('');
                     }}
                     placeholder='Enter your own debate topic...'
-                    className='w-full p-4 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none'
+                    className='w-full p-4 bg-gray-800 border border-gray-600 rounded-xl text-gray-100 placeholder-gray-400 focus:border-gray-500 focus:outline-none resize-none'
                     rows={3}
                   />
                 </div>
@@ -126,13 +163,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               {/* Settings */}
               <div className='flex items-center justify-center space-x-6'>
                 <div className='flex items-center space-x-2'>
-                  <label className='text-sm text-gray-400'>
+                  <label className='text-sm text-gray-300'>
                     Debate rounds:
                   </label>
                   <select
                     value={maxIterations}
                     onChange={(e) => setMaxIterations(Number(e.target.value))}
-                    className='bg-gray-800 border border-gray-600 rounded px-3 py-1 text-white text-sm'
+                    className='bg-gray-800 border border-gray-600 rounded-xl px-3 py-1 text-gray-100 text-sm'
                   >
                     <option value={1}>1</option>
                     <option value={2}>2</option>
@@ -148,7 +185,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <button
                   onClick={handleStartDebate}
                   disabled={!selectedPrompt && !customPrompt.trim()}
-                  className='px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors'
+                  className='px-8 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-gray-100 rounded-xl font-medium transition-colors'
                 >
                   Start Debate
                 </button>
@@ -166,7 +203,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       <div className='flex-1 overflow-y-auto p-6 space-y-6'>
         {/* Topic Header */}
         <div className='text-center py-6 border-b border-gray-700'>
-          <h2 className='text-xl font-semibold text-white mb-2'>
+          <h2 className='text-xl font-semibold text-gray-100 mb-2'>
             {currentSession.topic}
           </h2>
           <div className='text-sm text-gray-400'>
@@ -177,38 +214,43 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
         {/* Agent Messages */}
         {messages.map((message) => (
-          <div key={message.id} className='flex space-x-4'>
+          <div key={message.id} className='flex space-x-4 max-w-4xl'>
             <div
-              className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-lg ${getAgentColor(
+              className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center text-xs font-semibold ${getAgentColor(
                 message.agent
               )}`}
             >
               {getAgentIcon(message.agent)}
             </div>
 
-            <div className='flex-1 min-w-0'>
+            <div className='flex-1 min-w-0 max-w-3xl'>
               <div className='flex items-center space-x-2 mb-2'>
-                <span className='font-medium text-white'>{message.agent}</span>
+                <span className='font-medium text-gray-100'>
+                  {message.agent}
+                </span>
                 <span className='text-xs text-gray-500'>
                   {message.timestamp.toLocaleTimeString()}
                 </span>
                 {message.status === 'thinking' && (
-                  <span className='text-xs text-blue-400 animate-pulse'>
+                  <span className='text-xs text-gray-400 animate-pulse'>
                     Thinking...
                   </span>
                 )}
                 {message.status === 'speaking' && (
-                  <span className='text-xs text-green-400 animate-pulse'>
+                  <span className='text-xs text-gray-400 animate-pulse'>
                     Speaking...
                   </span>
                 )}
               </div>
 
               {message.content && (
-                <div className='bg-gray-800 rounded-lg p-4 text-gray-300'>
-                  <div className='whitespace-pre-wrap text-sm leading-relaxed'>
-                    {message.content}
-                  </div>
+                <div className='bg-gray-800 border border-gray-700 rounded-xl p-4 text-gray-300'>
+                  <div
+                    className='text-sm leading-relaxed prose prose-sm max-w-none prose-invert'
+                    dangerouslySetInnerHTML={{
+                      __html: formatMessageContent(message.content),
+                    }}
+                  />
 
                   {message.attachmentPath && (
                     <div className='mt-3 pt-3 border-t border-gray-700'>
@@ -216,7 +258,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         onClick={() =>
                           onAttachmentClick(message.attachmentPath!)
                         }
-                        className='flex items-center space-x-2 text-blue-400 hover:text-blue-300 text-sm'
+                        className='flex items-center space-x-2 text-gray-400 hover:text-gray-200 text-sm'
                       >
                         <svg
                           className='w-4 h-4'
@@ -245,15 +287,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {isLoading && (
           <div className='text-center py-8'>
             <div className='animate-pulse text-gray-400'>
-              <div className='text-2xl mb-2'>🤖</div>
-              <div>AI agents are debating...</div>
+              <div className='text-sm mb-2'>Processing...</div>
             </div>
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className='bg-red-900/20 border border-red-500/50 rounded-lg p-4 text-red-300'>
+          <div className='bg-gray-800 border border-gray-600 rounded-xl p-4 text-gray-300'>
             <div className='flex items-center space-x-2'>
               <svg
                 className='w-5 h-5'
@@ -284,7 +325,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
             <button
               onClick={onStopDebate}
-              className='px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors'
+              className='px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-100 rounded-xl text-sm transition-colors'
             >
               Stop Debate
             </button>

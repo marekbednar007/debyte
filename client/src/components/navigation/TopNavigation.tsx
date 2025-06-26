@@ -17,7 +17,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
       <div className='flex items-center space-x-4'>
         <button
           onClick={onToggleHistory}
-          className='p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors'
+          className='p-2 text-gray-400 hover:text-gray-100 hover:bg-gray-700 rounded-xl transition-colors'
           title='Toggle sidebar'
         >
           <svg
@@ -37,7 +37,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
 
         <button
           onClick={onNewChat}
-          className='flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors'
+          className='flex items-center space-x-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-100 rounded-xl transition-colors text-sm'
         >
           <svg
             className='w-4 h-4'
@@ -63,10 +63,10 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
             <div
               className={`w-2 h-2 rounded-full ${
                 currentSession.status === 'active'
-                  ? 'bg-green-400 animate-pulse'
+                  ? 'bg-gray-700 animate-pulse'
                   : currentSession.status === 'complete'
                   ? 'bg-gray-400'
-                  : 'bg-yellow-400'
+                  : 'bg-gray-500'
               }`}
             ></div>
             <span className='text-sm text-gray-300 truncate max-w-md'>
@@ -81,7 +81,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
 
       {/* Right side */}
       <div className='flex items-center space-x-4'>
-        <div className='text-sm text-gray-400'>AI Board of Directors</div>
+        {/* Removed AI Board of Directors text */}
       </div>
     </div>
   );
