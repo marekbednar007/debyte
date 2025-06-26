@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import app from './app';
 import DatabaseConnection from './config/database';
+import { DebateController } from './controllers/debateController';
 
 console.log('Booting server...');
 console.log('Start of server.ts');
@@ -29,6 +30,9 @@ async function startServer() {
   try {
     // Initialize database first
     await initializeDatabase();
+
+    // Clean up any orphaned debate processes from previous runs
+    await DebateController.cleanupOrphanedProcesses();
 
     app
       .listen(port, () => {

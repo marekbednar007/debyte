@@ -190,12 +190,17 @@ class DatabaseIntegratedHistoryManager:
         self._current_session_folder = value
         
     def create_session_folder(self, topic: str) -> str:
-        """Create session folder and MongoDB entry"""
+        """Create session folder and MongoDB entry (or use existing session)"""
         # Create file system folder
         session_folder = self.file_manager.create_session_folder(topic)
         
-        # Create MongoDB session
-        debate_id = self.db_adapter.create_debate_session(topic, session_folder)
+        # Only create MongoDB session if we don't already have a debate ID
+        if not self.db_adapter.current_debate_id:
+            print(f"🆕 No existing debate ID, creating new MongoDB session...")
+            debate_id = self.db_adapter.create_debate_session(topic, session_folder)
+        else:
+            print(f"♻️ Using existing debate ID: {self.db_adapter.current_debate_id}")
+            # TODO: Optionally update the session folder in the existing session
         
         return session_folder
     

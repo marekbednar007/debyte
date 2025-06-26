@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config();
+// Load .env from server root directory
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const MONGODB_URI =
   process.env.MONGODB_URI || 'mongodb://localhost:27017/debate_system';
