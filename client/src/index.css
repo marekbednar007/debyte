@@ -17,7 +17,7 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
 
   .btn-secondary {
@@ -25,6 +25,6 @@
   }
 
   .input-primary {
-    @apply bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg px-3 py-2 transition-colors duration-200;
+    @apply bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 rounded-lg px-3 py-2 transition-colors duration-200;
   }
 }

@@ -55,20 +55,33 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       '<h1 class="text-2xl font-bold mb-4 mt-4 text-gray-100">$1</h1>'
     );
 
-    // Lists
+    // First handle line breaks and normalize them
+    formatted = formatted.replace(/\r\n/g, '\n'); // Normalize line endings
+    formatted = formatted.replace(/\n\n\n+/g, '\n\n'); // Replace multiple line breaks with double
+
+    // Lists - handle these before line break conversion
     formatted = formatted.replace(
-      /^\- (.*$)/gim,
+      /^[\-\*\+] (.*)$/gim,
       '<div class="ml-4 mb-1">• $1</div>'
     );
     formatted = formatted.replace(
-      /^\d+\. (.*$)/gim,
+      /^\d+\. (.*)$/gim,
       '<div class="ml-4 mb-1">$1</div>'
     );
 
-    // Clean up excessive line breaks
-    formatted = formatted.replace(/\n\n\n+/g, '\n\n'); // Replace multiple line breaks with double
-    formatted = formatted.replace(/\n\n/g, '<br><br>'); // Double line breaks become paragraph breaks
-    formatted = formatted.replace(/\n/g, '<br>'); // Single line breaks
+    // Now handle line breaks more carefully
+    // Split into paragraphs and handle each section
+    const sections = formatted.split('\n\n');
+    formatted = sections
+      .map((section) => {
+        // If section contains list items, don't add extra breaks
+        if (section.includes('<div class="ml-4 mb-1">')) {
+          return section;
+        }
+        // For regular text, convert single line breaks to <br>
+        return section.replace(/\n/g, '<br>');
+      })
+      .join('<br><br>');
 
     return formatted;
   };

@@ -75,7 +75,7 @@ export const DebateStarter: React.FC<DebateStarterProps> = ({
             <button
               key={index}
               onClick={() => setTopic(suggestedTopic)}
-              className='text-left w-full text-sm text-blue-600 hover:text-blue-800 hover:underline'
+              className='text-left w-full text-sm text-gray-400 hover:text-gray-200 hover:underline'
               disabled={isLoading}
             >
               {suggestedTopic}

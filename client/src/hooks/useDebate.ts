@@ -142,6 +142,76 @@ export const useDebate = () => {
     }
   }, []);
 
+  const loadHistoricalDebate = useCallback(async (debateId: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Load debate details
+      const [sessionResponse, reportResponse] = await Promise.all([
+        axios.get(`${API_BASE_URL}/debates/${debateId}`),
+        axios.get(`${API_BASE_URL}/debates/${debateId}/report`, {
+          responseType: 'text',
+        }),
+      ]);
+
+      const session = sessionResponse.data.session;
+      setCurrentSession(session);
+
+      // Parse the report to extract agent messages
+      const reportText = reportResponse.data;
+      const agentMessages = parseReportToMessages(reportText);
+      setMessages(agentMessages);
+    } catch (error) {
+      console.error('Failed to load historical debate:', error);
+      setError('Failed to load debate history');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const parseReportToMessages = (reportText: string): AgentMessage[] => {
+    const messages: AgentMessage[] = [];
+    const sections = reportText.split(
+      '............................................................'
+    );
+
+    sections.forEach((section, index) => {
+      const lines = section.trim().split('\n');
+      const agentLine = lines.find(
+        (line) =>
+          line.trim() &&
+          !line.includes('PHASE:') &&
+          !line.includes('AI BOARD') &&
+          !line.includes('=====')
+      );
+
+      if (
+        agentLine &&
+        agentLine.includes(':') &&
+        !agentLine.includes('Topic:') &&
+        !agentLine.includes('Date:') &&
+        !agentLine.includes('Status:')
+      ) {
+        const agentName = agentLine.replace(':', '').trim();
+        const content = lines.slice(1).join('\n').trim();
+
+        if (content && agentName.length > 0) {
+          messages.push({
+            id: `historical-${agentName}-${index}`,
+            agent: agentName,
+            status: 'complete',
+            content: content,
+            timestamp: new Date(),
+            attachmentPath: undefined,
+          });
+        }
+      }
+    });
+
+    return messages;
+  };
+
   return {
     currentSession,
     messages,
@@ -150,5 +220,6 @@ export const useDebate = () => {
     startDebate,
     stopDebate,
     downloadAttachment,
+    loadHistoricalDebate,
   };
 };

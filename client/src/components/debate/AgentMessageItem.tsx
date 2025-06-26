@@ -39,15 +39,15 @@ export const AgentMessageItem: React.FC<AgentMessageItemProps> = ({
         );
       case 'speaking':
         return (
-          <div className='flex items-center text-blue-600'>
+          <div className='flex items-center text-gray-400'>
             <div className='flex space-x-1 mr-2'>
-              <div className='w-1 h-4 bg-blue-600 animate-pulse'></div>
+              <div className='w-1 h-4 bg-gray-400 animate-pulse'></div>
               <div
-                className='w-1 h-4 bg-blue-600 animate-pulse'
+                className='w-1 h-4 bg-gray-400 animate-pulse'
                 style={{ animationDelay: '0.1s' }}
               ></div>
               <div
-                className='w-1 h-4 bg-blue-600 animate-pulse'
+                className='w-1 h-4 bg-gray-400 animate-pulse'
                 style={{ animationDelay: '0.2s' }}
               ></div>
             </div>
@@ -78,15 +78,16 @@ export const AgentMessageItem: React.FC<AgentMessageItemProps> = ({
 
   const getAgentColor = (agentName: string) => {
     const colors = {
-      'First Principles Physicist': 'border-l-blue-500 bg-blue-50',
-      'Systems Futurist': 'border-l-purple-500 bg-purple-50',
-      'Pattern Synthesizer': 'border-l-green-500 bg-green-50',
-      'Civilizational Architect': 'border-l-yellow-500 bg-yellow-50',
-      'Entrepreneurial Visionary': 'border-l-red-500 bg-red-50',
-      'Meta-Learning Strategist': 'border-l-indigo-500 bg-indigo-50',
+      'First Principles Physicist': 'border-l-gray-500 bg-gray-800',
+      'Systems Futurist': 'border-l-gray-400 bg-gray-800',
+      'Pattern Synthesizer': 'border-l-gray-600 bg-gray-800',
+      'Civilizational Architect': 'border-l-gray-300 bg-gray-800',
+      'Entrepreneurial Visionary': 'border-l-gray-700 bg-gray-800',
+      'Meta-Learning Strategist': 'border-l-gray-200 bg-gray-800',
     };
     return (
-      colors[agentName as keyof typeof colors] || 'border-l-gray-500 bg-gray-50'
+      colors[agentName as keyof typeof colors] ||
+      'border-l-gray-500 bg-gray-800'
     );
   };
 

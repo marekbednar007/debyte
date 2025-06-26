@@ -14,6 +14,7 @@ function App() {
     startDebate,
     stopDebate,
     downloadAttachment,
+    loadHistoricalDebate,
   } = useDebate();
 
   const [selectedAttachment, setSelectedAttachment] = useState<string | null>(
@@ -36,9 +37,10 @@ function App() {
   };
 
   const handleSelectDebate = (debate: any) => {
-    // For now, just log the selection. In a full implementation,
-    // this would load the selected debate's messages
-    console.log('Selected debate:', debate);
+    // Load the selected debate's messages and display them
+    if (debate._id) {
+      loadHistoricalDebate(debate._id);
+    }
   };
 
   return (
